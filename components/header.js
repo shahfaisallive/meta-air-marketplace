@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { Fragment, useState, useContext, useRef, useEffect } from "react";
-import { Disclosure, Menu, Transition, Switch } from "@headlessui/react";
+import { Dialog,Disclosure, Menu, Transition, Switch } from "@headlessui/react";
 import { BellIcon, MenuIcon, XIcon } from "@heroicons/react/outline";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faClone } from "@fortawesome/free-regular-svg-icons";
+
 import {
   faMoon,
   faShoppingBag,
@@ -41,7 +42,7 @@ export default function Header(props) {
   //Create LoadAccounts Function
   const account = web3Api.account;
   const [accountBalance, setAccountBalance] = useState(0);
-
+  const [MetaMaskDialog,setMetaMaskDialog] = useState(false)
   useEffect(() => {
     const loadBalance = async () => {
       if (account) {
@@ -74,7 +75,8 @@ export default function Header(props) {
       let amount = await web3.eth.getBalance(currentAddress);
       amount = web3.utils.fromWei(web3.utils.toBN(amount), "ether");
     } else {
-      console.log("Please install MetaMask!");
+      console.log("https://metamask.app.link/dapp/ethereum.stackexchange.com/")
+      setMetaMaskDialog(true)
     }
   };
   let [successOpen, setSuccessOpen] = useState(false);
@@ -354,7 +356,17 @@ export default function Header(props) {
                   {item.name}
                 </Disclosure.Button>
               ))}
+{!account && <button
 
+                       className={classNames(
+                        "flex-1",
+                         "text-gray-400 dark:text-gray-600",
+                        "hover:text-gray-400 dark:hover:text-gray-400 font-semibold block px-3 py-2 rounded-md text-base text-left"
+                      )}
+                        onClick={connectMetamask}
+                      >
+                        Connect Wallet
+                      </button>}
               {/* dark or light mode */}
               <div className="flex-1 relative grid px-3 py-2">
                 <Switch
@@ -393,7 +405,7 @@ export default function Header(props) {
                               {account}
                             </p>
                             <p className="text-[#7D82B2] text-xs text-left">
-                              {accountBalance} ETH
+                              {accountBalance} MAIR
                             </p>
                           </div>
                         </div>
@@ -471,6 +483,61 @@ export default function Header(props) {
               buttonTitle: "Cancel",
             }}
           </SuccessDialog>
+          <Transition appear show={MetaMaskDialog} as={Fragment}>
+            <Dialog
+            as="div"
+            className="fixed inset-0 z-100 overflow-y-auto"
+            onClose={()=>setMetaMaskDialog(!MetaMaskDialog)}
+            >
+            <div className="min-h-screen px-4 text-center">
+                <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0"
+                enterTo="opacity-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100"
+                leaveTo="opacity-0"
+                >
+                <Dialog.Overlay className="fixed inset-0 bg-black bg-opacity-80 transition-opacity" />
+                </Transition.Child>
+
+                {/* This element is to trick the browser into centering the PriceModal contents. */}
+                <span
+                className="inline-block h-screen align-middle"
+                aria-hidden="true"
+                >
+                &#8203;
+                </span>
+                <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0 scale-95"
+                enterTo="opacity-100 scale-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100 scale-100"
+                leaveTo="opacity-0 scale-95"
+                >
+                <div className="inline-block w-full max-w-md p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-[#24274D] dark:bg-white shadow-xl">
+                    <Dialog.Title
+                    as="h3"
+                    className="text-white text-2xl font-semibold leading-6 "
+                    >
+                    </Dialog.Title>
+                    <img src="https://img.icons8.com/color/48/000000/metamask-logo.png"/>
+                    <div className="text-white">
+                    Tap the button below to <b>Open MetMask</b>. Please access this site on MetaMask's in-app browser for a seamless experience.
+                      </div>
+                      <div className="text-right">
+                        <a className="bg-gradient-to-b from-[#FF2D92] to-[#FFA25F] p-2 text-white" href="https://metamask.app.link/dapp/ethereum.stackexchange.com/" target="_blank">
+                          Open MetaMask
+                        </a>
+                      </div>
+                </div>
+                </Transition.Child>
+            </div>
+            </Dialog>
+        </Transition>
         </div>
       )}
     </Disclosure>
