@@ -270,7 +270,7 @@ export default function CategoryPage() {
                 </a>
         :<ArtGallery2 galleries={data}>{{buyFunction:buyNFT}}</ArtGallery2>
                 }
-                                 <SuccessDialog show={successOpen} closeSuccessModal={closeSuccessModal}>{{msg:"PLease Connect MetaMask With Rinkeby NetWork",title:"Attention",buttonTitle:"Cancel"}}</SuccessDialog>
+                                 <SuccessDialog show={successOpen} closeSuccessModal={closeSuccessModal}>{{msg:"PLease Connect MetaMask With Binance NetWork",title:"Attention",buttonTitle:"Cancel"}}</SuccessDialog>
                                  <LoaderDialog show={loaderOpen} openLoaderModal={openLoaderModal}></LoaderDialog>
 
                     </div>

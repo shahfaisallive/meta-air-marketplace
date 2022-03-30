@@ -287,7 +287,7 @@ const cancelResellNFT = async (nftItem)=>{
                     </div>
                 </div>
             </div>
-            <SuccessDialog show={successOpen} closeSuccessModal={closeSuccessModal}>{{msg:"PLease Connect MetaMask With Rinkeby NetWork",title:"Attention",buttonTitle:"Cancel"}}</SuccessDialog>
+            <SuccessDialog show={successOpen} closeSuccessModal={closeSuccessModal}>{{msg:"PLease Connect MetaMask With Binance NetWork",title:"Attention",buttonTitle:"Cancel"}}</SuccessDialog>
             <LoaderDialog show={loaderOpen} openLoaderModal={openLoaderModal}></LoaderDialog>
 
             

@@ -4,6 +4,8 @@ import { Dialog,Disclosure, Menu, Transition, Switch } from "@headlessui/react";
 import { BellIcon, MenuIcon, XIcon } from "@heroicons/react/outline";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faClone } from "@fortawesome/free-regular-svg-icons";
+import Onboard from "bnc-onboard";
+
 
 import {
   faMoon,
@@ -24,11 +26,46 @@ export default function Header(props) {
   const [currentPage, setCurrentPage] = useState(props.current);
   const { themeMode, toggleThemeMode } = useContext(ThemeContext);
 
+  const INFURA_KEY = 'b451483d68834ca2aa4806a999834f21';
+  const rpcUrlInfura = 'wss://rinkeby.infura.io/ws/v3/b451483d68834ca2aa4806a999834f21';
   const headers = [
     { name: "Explore", href: "/explore " },
     { name: "Categories", href: "/categories" },
     { name: "Create NFT", href: "/create-nft" },
   ];
+
+  const walletsList = [
+    { walletName: "metamask", preferred: true },
+    {
+      walletName: "walletConnect",
+      infuraKey: INFURA_KEY,
+      preferred: true,
+    },
+    { walletName: "coinbase", preferred: true },
+    { walletName: "trust", preferred: true, rpcUrl: rpcUrlInfura },
+    { walletName: "authereum" },
+    {
+      walletName: "ledger",
+      rpcUrl: rpcUrlInfura,
+    },
+    {
+      walletName: "keepkey",
+      rpcUrl: rpcUrlInfura,
+    }
+  ];
+
+  const onboard = Onboard({
+    networkId: 4,
+    subscriptions: {
+      wallet: (wallet) => {
+        // instantiate web3 when the user has selected a wallet
+        web3 = new Web3(wallet.provider);
+      },
+    },
+    walletSelect: {
+      wallets: walletsList,
+    },
+  })
 
   function classNames(...classes) {
     return classes.filter(Boolean).join(" ");
@@ -58,27 +95,36 @@ export default function Header(props) {
     loadBalance();
   }, [account]);
   //Connect Metamask Wallet
-  const connectMetamask = async () => {
-    const currentProvider = await detectEthereumProvider();
-    console.log("WE ARE IN META MASK CONNECT");
-    if (currentProvider) {
-      // let web3InstanceCopy = new Web3(currentProvider);
-      // setWeb3Instance(web3InstanceCopy);
-      if (!window.ethereum.selectedAddress) {
-        await window.ethereum.request({ method: "eth_requestAccounts" });
-      }
-      await window.ethereum.enable();
-      let currentAddress = window.ethereum.selectedAddress;
-      console.log(currentAddress);
-      account = currentAddress;
-      const web3 = new Web3(currentProvider);
-      let amount = await web3.eth.getBalance(currentAddress);
-      amount = web3.utils.fromWei(web3.utils.toBN(amount), "ether");
-    } else {
-      console.log("https://metamask.app.link/dapp/ethereum.stackexchange.com/")
-      setMetaMaskDialog(true)
-    }
-  };
+  // const connectMetamask = async () => {
+  //   const currentProvider = await detectEthereumProvider();
+  //   console.log("WE ARE IN META MASK CONNECT");
+  //   if (currentProvider) {
+  //     // let web3InstanceCopy = new Web3(currentProvider);
+  //     // setWeb3Instance(web3InstanceCopy);
+  //     if (!window.ethereum.selectedAddress) {
+  //       await window.ethereum.request({ method: "eth_requestAccounts" });
+  //     }
+  //     await window.ethereum.enable();
+  //     let currentAddress = window.ethereum.selectedAddress;
+  //     console.log(currentAddress);
+  //     account = currentAddress;
+  //     const web3 = new Web3(currentProvider);
+  //     let amount = await web3.eth.getBalance(currentAddress);
+  //     amount = web3.utils.fromWei(web3.utils.toBN(amount), "ether");
+  //   } else {
+  //     console.log("https://metamask.app.link/dapp/ethereum.stackexchange.com/")
+  //     setMetaMaskDialog(true)
+  //   }
+  // };
+
+  async function onboardLoginFunc() {
+    // Prompt user to select a wallet
+    await onboard.walletSelect();
+    // Run wallet checks to make sure that user is ready to transact
+    let walletCheck = await onboard.walletCheck();
+    return walletCheck;
+  }
+
   let [successOpen, setSuccessOpen] = useState(false);
   let [loaderOpen, setLoaderOpen] = useState(false);
 
@@ -324,7 +370,8 @@ export default function Header(props) {
                     ) : (
                       <button
                         className="rounded-md bg-gradient-to-b  m-6 from-[#3461FF] to-[#8454EB] text-white text-base  sm:px-2 shadow-lg"
-                        onClick={connectMetamask}
+                        // onClick={connectMetamask}
+                        onClick={onboardLoginFunc}
                       >
                         Connect Wallet
                       </button>
@@ -363,7 +410,8 @@ export default function Header(props) {
                          "text-gray-400 dark:text-gray-600",
                         "hover:text-gray-400 dark:hover:text-gray-400 font-semibold block px-3 py-2 rounded-md text-base text-left"
                       )}
-                        onClick={connectMetamask}
+                        // onClick={connectMetamask}
+                        onClick={onboardLoginFunc}
                       >
                         Connect Wallet
                       </button>}
@@ -478,7 +526,7 @@ export default function Header(props) {
             closeSuccessModal={closeSuccessModal}
           >
             {{
-              msg: "PLease Connect MetaMask With Roposten NetWork",
+              msg: "PLease Connect MetaMask With Binance NetWork",
               title: "Attention",
               buttonTitle: "Cancel",
             }}

@@ -225,7 +225,7 @@ export default function Paragraph2() {
 
         <SuccessDialog show={successOpen} closeSuccessModal={closeSuccessModal}>
           {{
-            msg: "PLease Connect MetaMask With Roposten NetWork",
+            msg: "PLease Connect MetaMask With Binance NetWork",
             title: "Attention",
             buttonTitle: "Cancel",
           }}

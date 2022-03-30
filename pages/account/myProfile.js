@@ -294,7 +294,7 @@ export default function myProfilePage() {
                     </div>
                 </div>
             </div>
-            <SuccessDialog show={successOpen} closeSuccessModal={closeSuccessModal}>{{msg:"PLease Connect MetaMask With Rinkeby NetWork",title:"Attention",buttonTitle:"Cancel"}}</SuccessDialog>
+            <SuccessDialog show={successOpen} closeSuccessModal={closeSuccessModal}>{{msg:"PLease Connect MetaMask With Binance NetWork",title:"Attention",buttonTitle:"Cancel"}}</SuccessDialog>
 
             <Footer></Footer>
         </>

@@ -253,7 +253,7 @@ return (
 
                         {/* galleries */}
                         <ArtGallery4 galleries={purchasedItems}  closePriceModal={closePriceModal}>{{resellFucnction:resellItemFunction}}</ArtGallery4> 
-                        <SuccessDialog show={successOpen} closeSuccessModal={closeSuccessModal}>{{msg:"PLease Connect MetaMask With Rinkeby NetWork",title:"Attention",buttonTitle:"Cancel"}}</SuccessDialog>
+                        <SuccessDialog show={successOpen} closeSuccessModal={closeSuccessModal}>{{msg:"PLease Connect MetaMask With Binance NetWork",title:"Attention",buttonTitle:"Cancel"}}</SuccessDialog>
                         <LoaderDialog show={loaderOpen} openLoaderModal={openLoaderModal}></LoaderDialog>
 
                     </div>

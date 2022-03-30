@@ -1,7 +1,7 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEthereum } from "@fortawesome/free-brands-svg-icons";
 import Link from "next/link";
-import { useState, useEffect,Fragment } from "react";
+import { useState, useEffect, Fragment } from "react";
 import Web3 from "web3";
 import { Dialog, Transition } from '@headlessui/react'
 
@@ -18,11 +18,14 @@ import {
 export default function ArtPreview(props) {
   const [Approve, setApprove] = useState(false);
   const [nftMarketAddress, setNftMarketAddress] = useState("");
-const [isLoading,setIsLoading] = useState(false)
-const [BidModal,setBidModal] = useState(false)
-const [BidPrice,setBidPrice] = useState(0)
-const [BidDetailModal,setBidDetailModal] = useState(false)
-// const [TopBid,setTopBid] = useState(null)
+  const [isLoading, setIsLoading] = useState(false)
+  const [BidModal, setBidModal] = useState(false)
+  const [BidPrice, setBidPrice] = useState(0)
+  const [BidDetailModal, setBidDetailModal] = useState(false)
+  const [userAllowance, setUserAllowance] = useState(false)
+  const [isApproved, setIsApproved] = useState(false)
+  // const [TopBid,setTopBid] = useState(null)
+
   useEffect(() => {
     const fetchData = async () => {
       const marketContractFile = await fetch("/abis/NFTMarketPlace.json");
@@ -40,10 +43,22 @@ const [BidDetailModal,setBidDetailModal] = useState(false)
         const marketAddress = nftMarketWorkObject.address;
         setNftMarketAddress(marketAddress);
       }
+
+      if (props.children.tokenContract && props.children.account) {
+        const allowance = await props.children.tokenContract.methods
+          .allowance(props.children.account, nftMarketAddress).call()
+        setUserAllowance(allowance)
+        console.log('allowance:', allowance)
+        if (userAllowance >= props.children.item.price) {
+          setIsApproved(true)
+        }
+
+      }
     };
     fetchData()
-    
-  }, []);
+
+  }, [props.children.tokenContract, props.children.account, nftMarketAddress]);
+
   // useEffect(()=>{
   //   if(props && props.children.marketContract){
   //     getTopBid()
@@ -52,36 +67,36 @@ const [BidDetailModal,setBidDetailModal] = useState(false)
   var ApproveItem = async () => {
     setIsLoading(true)
     //Web3.utils.toWei(props.children.item.price, 'ether')
-    const price = props.children.item.price*100;
+    const price = props.children.item.price * 100;
     console.log(price)
     const approved = await props.children.tokenContract.methods
       .approve(nftMarketAddress, Web3.utils.toWei(price.toString(), 'ether'))
       .send({ from: props.children.account })
-      console.log(approved);
-    if(approved && approved.status === true){
-        setApprove(true)
-        setIsLoading(false)
+    console.log(approved);
+    if (approved && approved.status === true) {
+      setApprove(true)
+      setIsLoading(false)
     }
-    else{
-        setApprove(false)
-        setIsLoading(false)
+    else {
+      setApprove(false)
+      setIsLoading(false)
     }
-    
+
   };
-  var placeBid = async ()=>{
+  var placeBid = async () => {
     await props.children.marketContract.methods
-    .placeBid(props.children.item.itemId, Web3.utils.toWei(BidPrice, 'ether'))
-    .send({ from: props.children.account })
-    console.log("Bid Placed",BidPrice)
+      .placeBid(props.children.item.itemId, Web3.utils.toWei(BidPrice, 'ether'))
+      .send({ from: props.children.account })
+    console.log("Bid Placed", BidPrice)
     setBidModal(false)
   }
-  var sellNft = async()=>{
+  var sellNft = async () => {
     console.log("nftAddress", props.children.nftContract._address)
     console.log("buyer", props.children.topBid.bidPlacedBy)
     console.log(props.children.item.itemId)
     await props.children.marketContract.methods
-    .sellToBidder(props.children.nftContract._address, props.children.topBid.bidPlacedBy, props.children.item.itemId)
-    .send({ from: props.children.account })
+      .sellToBidder(props.children.nftContract._address, props.children.topBid.bidPlacedBy, props.children.item.itemId)
+      .send({ from: props.children.account })
     setBidDetailModal(false)
   }
   // var getTopBid = async()=>{
@@ -121,28 +136,12 @@ const [BidDetailModal,setBidDetailModal] = useState(false)
                   </p>
                 </div>
               </div>
-              {/* <button
-                  className="w-48 rounded-full bg-gradient-to-b from-[#3461FF] to-[#8454EB] text-white text-base uppercase py-2 shadow-md m-auto ml-0 border-2 border-[#161A42] dark:border-white"
-                  onClick={() =>
-                    {props.children.tokenContract.methods.mint('0x3305e1AC935039D775E4fc45f4065e79D9Fe61B5', BigInt(200000000000000000000)).send({from: props.children.account})}
-                  }
-                >
-                  ⚡ Shah Faisal Mint
-                </button>
-                <button
-                  className="w-48 rounded-full bg-gradient-to-b from-[#3461FF] to-[#8454EB] text-white text-base uppercase py-2 shadow-md m-auto ml-0 border-2 border-[#161A42] dark:border-white"
-                  onClick={async() =>
-                    {
-                        const allow = await props.children.tokenContract.methods.allowance('0x0b7C7Efe2183fEf476b5f86cE53dA612c5dC89b6', nftMarketAddress).call()
-                        console.log(allow)
-                    }
-                  }
-                >
-                  ⚡ Zeeshan Check Allowance
-                </button> */}
+
+              {props.children.item && (props.children.item.seller === props.children.account) ? "":
+              <>
               {props.children.item.sold ? (
                 ""
-              ) : Approve ? (
+              ) : isApproved ? (
                 <button
                   className="w-48 rounded-full bg-gradient-to-b from-[#FF2D92] to-[#FFA25F] text-white text-base uppercase py-2 shadow-md m-auto ml-0 border-2 border-[#161A42] dark:border-white"
                   onClick={() =>
@@ -150,6 +149,7 @@ const [BidDetailModal,setBidDetailModal] = useState(false)
                   }
                 >
                   ⚡ BUY NOW
+
                 </button>
               ) : (
                 <button
@@ -157,9 +157,10 @@ const [BidDetailModal,setBidDetailModal] = useState(false)
                   onClick={() => ApproveItem()}
                   disabled={isLoading}
                 >
-                  ⚡ APPROVE{" "} 
+                  ⚡ APPROVE{" "}
                 </button>
               )}
+              </>}
             </div>
             {/* <button onClick={async() =>{
               const bid = await props.children.marketContract.methods.bids(props.children.item.itemId).call()             
@@ -178,13 +179,13 @@ const [BidDetailModal,setBidDetailModal] = useState(false)
                   </p>
                 </div>
               </div>
-              {!props.children.item.sold && Approve ? <button
-              className="w-48 rounded-full bg-gradient-to-b from-[#FF2D92] to-[#FFA25F] text-white text-base uppercase py-2 shadow-md m-auto ml-0 border-2 border-[#161A42] dark:border-white"
-              onClick={() => {setBidModal(!BidModal)}}
-              disabled={isLoading}
-            >
-              ⚡ Place Bid{" "} 
-            </button>:""
+              {!props.children.item.sold && isApproved ? <button
+                className="w-48 rounded-full bg-gradient-to-b from-[#FF2D92] to-[#FFA25F] text-white text-base uppercase py-2 shadow-md m-auto ml-0 border-2 border-[#161A42] dark:border-white"
+                onClick={() => { setBidModal(!BidModal) }}
+                disabled={isLoading}
+              >
+                ⚡ Place Bid{" "}
+              </button> : ""
               }
             </div>
           </div>
@@ -200,60 +201,67 @@ const [BidDetailModal,setBidDetailModal] = useState(false)
               {props.children.item.price}MAIR
             </h1>
           </div>
+          {props.children.topBid && (props.children.topBid.bidPlacedBy === "0x0000000000000000000000000000000000000000") ? "": <>
           {
-            props.children.topBid && 
-            <>
-            <label className="text-white">Top Bid</label>
-            <div  style={{color:"#FFA25F",cursor:"pointer"}} onClick={()=>setBidDetailModal(!BidDetailModal)}>{Web3.utils.fromWei(props.children.topBid.bidAmount, 'ether')} MAIR</div>
-            </>
+            props.children.topBid &&
+            <div style={{marginTop: '10px', marginLeft: '5px'}}>
+              <label className="text-white" >Top Bid</label>
+              <div style={{ color: "#FFA25F", cursor: "pointer" }} onClick={() => {
+                
+                setBidDetailModal(!BidDetailModal)}}>{Web3.utils.fromWei(props.children.topBid.bidAmount, 'ether')} MAIR</div>
+            </div>
           }
+          </>}
+          
+
+         
         </div>
       </div>
-      <LoaderDialog show={isLoading} openLoaderModal={()=>setIsLoading(!isLoading)}></LoaderDialog>
+      <LoaderDialog show={isLoading} openLoaderModal={() => setIsLoading(!isLoading)}></LoaderDialog>
       <Transition appear show={BidModal} as={Fragment}>
-            <Dialog
-            as="div"
-            className="fixed inset-0 z-100 overflow-y-auto"
-            onClose={()=>setBidModal(!BidModal)}
+        <Dialog
+          as="div"
+          className="fixed inset-0 z-100 overflow-y-auto"
+          onClose={() => setBidModal(!BidModal)}
+        >
+          <div className="min-h-screen px-4 text-center">
+            <Transition.Child
+              as={Fragment}
+              enter="ease-out duration-300"
+              enterFrom="opacity-0"
+              enterTo="opacity-100"
+              leave="ease-in duration-200"
+              leaveFrom="opacity-100"
+              leaveTo="opacity-0"
             >
-            <div className="min-h-screen px-4 text-center">
-                <Transition.Child
-                as={Fragment}
-                enter="ease-out duration-300"
-                enterFrom="opacity-0"
-                enterTo="opacity-100"
-                leave="ease-in duration-200"
-                leaveFrom="opacity-100"
-                leaveTo="opacity-0"
-                >
-                <Dialog.Overlay className="fixed inset-0 bg-black bg-opacity-80 transition-opacity" />
-                </Transition.Child>
+              <Dialog.Overlay className="fixed inset-0 bg-black bg-opacity-80 transition-opacity" />
+            </Transition.Child>
 
-                {/* This element is to trick the browser into centering the PriceModal contents. */}
-                <span
-                className="inline-block h-screen align-middle"
-                aria-hidden="true"
+            {/* This element is to trick the browser into centering the PriceModal contents. */}
+            <span
+              className="inline-block h-screen align-middle"
+              aria-hidden="true"
+            >
+              &#8203;
+            </span>
+            <Transition.Child
+              as={Fragment}
+              enter="ease-out duration-300"
+              enterFrom="opacity-0 scale-95"
+              enterTo="opacity-100 scale-100"
+              leave="ease-in duration-200"
+              leaveFrom="opacity-100 scale-100"
+              leaveTo="opacity-0 scale-95"
+            >
+              <div className="inline-block w-full max-w-md p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-[#24274D] dark:bg-white shadow-xl">
+                <Dialog.Title
+                  as="h3"
+                  className="text-white text-2xl font-semibold leading-6 "
                 >
-                &#8203;
-                </span>
-                <Transition.Child
-                as={Fragment}
-                enter="ease-out duration-300"
-                enterFrom="opacity-0 scale-95"
-                enterTo="opacity-100 scale-100"
-                leave="ease-in duration-200"
-                leaveFrom="opacity-100 scale-100"
-                leaveTo="opacity-0 scale-95"
-                >
-                <div className="inline-block w-full max-w-md p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-[#24274D] dark:bg-white shadow-xl">
-                    <Dialog.Title
-                    as="h3"
-                    className="text-white text-2xl font-semibold leading-6 "
-                    >
-                    </Dialog.Title>
+                </Dialog.Title>
 
-                    <div className="relative text-[#B4BAEF]">
-                      <label className="text-white">Bid Price</label>
+                <div className="relative text-[#B4BAEF]">
+                  <label className="text-white">Bid Price</label>
                   <input
                     className="w-full text-sm p-3.5 pr-16 rounded-md border border-[#9FA4FF] bg-[#212760] dark:bg-white focus:outline-none focus:ring-2"
                     type="number"
@@ -261,108 +269,111 @@ const [BidDetailModal,setBidDetailModal] = useState(false)
                     placeholder="Price"
                     id="nft-price"
                     value={BidPrice}
-                    onChange={(e) =>{
+                    onChange={(e) => {
                       setBidPrice(e.target.value)
                     }
-                      
+
                     }
                   ></input>
 
                   <p className="absolute top-1/2 right-8 -translate-y-1/2 text-sm">
-                    <img src="/assets/png/mair-white.png" style={{marginTop:"25px"}} />
+                    <img src="/assets/png/mair-white.png" style={{ marginTop: "25px" }} />
                   </p>
                   {/* <FontAwesomeIcon
                     icon={faEthereum}
                     className="absolute top-1/2 right-4 -translate-y-1/2 text-sm"
                   /> */}
                 </div>
-                <div style={{display:"flex",marginTop:"15px"}}>
-                <button
-                  className="w-48 rounded-full bg-gradient-to-b from-[#FF2D92] to-[#FFA25F] text-white text-base uppercase py-2 shadow-md m-auto ml-0 border-2 border-[#161A42] dark:border-white"
-                  onClick={() =>{
-                    setBidPrice(0)
-                    setBidModal(false)}
-                  }
-                >
-                   Cancel
-                </button>
-              
-                <button
-                  className="w-48 rounded-full bg-gradient-to-b from-[#3461FF] to-[#8454EB] text-white text-base uppercase py-2 shadow-md m-auto ml-0 border-2 border-[#161A42] dark:border-white"
-                  onClick={() => placeBid()}
-                  disabled={isLoading}
-                >
-                Place Bid
-                </button>
+                <div style={{ display: "flex", marginTop: "15px" }}>
+                  <button
+                    className="w-48 rounded-full bg-gradient-to-b from-[#FF2D92] to-[#FFA25F] text-white text-base uppercase py-2 shadow-md m-auto ml-0 border-2 border-[#161A42] dark:border-white"
+                    onClick={() => {
+                      setBidPrice(0)
+                      setBidModal(false)
+                    }
+                    }
+                  >
+                    Cancel
+                  </button>
+
+                  <button
+                    className="w-48 rounded-full bg-gradient-to-b from-[#3461FF] to-[#8454EB] text-white text-base uppercase py-2 shadow-md m-auto ml-0 border-2 border-[#161A42] dark:border-white"
+                    onClick={() => placeBid()}
+                    disabled={isLoading}
+                  >
+                    Place Bid
+                  </button>
                 </div>
-                </div>
-                </Transition.Child>
-            </div>
-            </Dialog>
-        </Transition>
-        <Transition appear show={BidDetailModal} as={Fragment}>
-            <Dialog
-            as="div"
-            className="fixed inset-0 z-100 overflow-y-auto"
-            onClose={()=>setBidDetailModal(!BidDetailModal)}
+              </div>
+            </Transition.Child>
+          </div>
+        </Dialog>
+      </Transition>
+      <Transition appear show={BidDetailModal} as={Fragment}>
+        <Dialog
+          as="div"
+          className="fixed inset-0 z-100 overflow-y-auto"
+          onClose={() => setBidDetailModal(!BidDetailModal)}
+        >
+          <div className="min-h-screen px-4 text-center">
+            <Transition.Child
+              as={Fragment}
+              enter="ease-out duration-300"
+              enterFrom="opacity-0"
+              enterTo="opacity-100"
+              leave="ease-in duration-200"
+              leaveFrom="opacity-100"
+              leaveTo="opacity-0"
             >
-            <div className="min-h-screen px-4 text-center">
-                <Transition.Child
-                as={Fragment}
-                enter="ease-out duration-300"
-                enterFrom="opacity-0"
-                enterTo="opacity-100"
-                leave="ease-in duration-200"
-                leaveFrom="opacity-100"
-                leaveTo="opacity-0"
-                >
-                <Dialog.Overlay className="fixed inset-0 bg-black bg-opacity-80 transition-opacity" />
-                </Transition.Child>
+              <Dialog.Overlay className="fixed inset-0 bg-black bg-opacity-80 transition-opacity" />
+            </Transition.Child>
 
-                {/* This element is to trick the browser into centering the PriceModal contents. */}
-                <span
-                className="inline-block h-screen align-middle"
-                aria-hidden="true"
+            {/* This element is to trick the browser into centering the PriceModal contents. */}
+            <span
+              className="inline-block h-screen align-middle"
+              aria-hidden="true"
+            >
+              &#8203;
+            </span>
+            <Transition.Child
+              as={Fragment}
+              enter="ease-out duration-300"
+              enterFrom="opacity-0 scale-95"
+              enterTo="opacity-100 scale-100"
+              leave="ease-in duration-200"
+              leaveFrom="opacity-100 scale-100"
+              leaveTo="opacity-0 scale-95"
+            >
+              <div className="inline-block w-full max-w-md p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-[#24274D] dark:bg-white shadow-xl">
+                <Dialog.Title
+                  as="h3"
+                  className="text-white text-2xl font-semibold leading-6 "
                 >
-                &#8203;
-                </span>
-                <Transition.Child
-                as={Fragment}
-                enter="ease-out duration-300"
-                enterFrom="opacity-0 scale-95"
-                enterTo="opacity-100 scale-100"
-                leave="ease-in duration-200"
-                leaveFrom="opacity-100 scale-100"
-                leaveTo="opacity-0 scale-95"
-                >
-                <div className="inline-block w-full max-w-md p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-[#24274D] dark:bg-white shadow-xl">
-                    <Dialog.Title
-                    as="h3"
-                    className="text-white text-2xl font-semibold leading-6 "
-                    >
-                    </Dialog.Title>
+                </Dialog.Title>
 
-                   
-                
-                   
-                        <div className="text-white">Bid By : {props.children.topBid && props.children.topBid.bidPlacedBy}</div>
-                        <div className="text-white">Bid Amount : { props.children.topBid && Web3.utils.fromWei(props.children.topBid.bidAmount, 'ether')}</div>
-                        <div> <button
+
+
+
+                <div className="text-white">Bid By : {props.children.topBid && props.children.topBid.bidPlacedBy}</div>
+                <div className="text-white">Bid Amount : {props.children.topBid && Web3.utils.fromWei(props.children.topBid.bidAmount, 'ether')}</div>
+                <div>
+                  {props.children.item && (props.children.item.seller === props.children.account) ?<button
                   className="w-48 rounded-full bg-gradient-to-b from-[#3461FF] to-[#8454EB] text-white text-base uppercase py-2 shadow-md m-auto ml-0 border-2 border-[#161A42] dark:border-white"
-                  onClick={()=>{sellNft()}}
-                
-                  
+                  onClick={() => { sellNft() }}
+
+
                 >
-                  ⚡ SELL 
-                </button></div>
-                      
-               </div>
-                
-                
-                </Transition.Child>
-            </div>
-            </Dialog>
-        </Transition>
+                  ⚡ SELL
+                </button> :"" }
+                   </div>
+
+              </div>
+
+
+            </Transition.Child>
+          </div>
+        </Dialog>
+      </Transition>
     </div>
   );
 }

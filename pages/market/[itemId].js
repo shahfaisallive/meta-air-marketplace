@@ -48,7 +48,6 @@ export default function SingleNftItem() {
   };
   useEffect(() => {
     initialize();
-    
   }, []);
   const web3Api = useWeb3();
   console.log("iam in single nft", web3Api);
@@ -147,7 +146,7 @@ export default function SingleNftItem() {
                 .fetchSingleItem(uniqid)
                 .call();
 
-              // console.log("Single item Data", item);
+              console.log("Single item Data", item);
 
               const priceToWei = Web3.utils.fromWei(
                 item.price.toString(),
@@ -242,7 +241,7 @@ export default function SingleNftItem() {
             // console.log(e);
           }
         } else {
-          window.alert("You are at Wrong Netweok, Connect with Binance Please");
+          window.alert("You are at Wrong network, Connect with Binance Please");
         }
       } catch (e) {
         // console.log("error at fetch single nft", e);
